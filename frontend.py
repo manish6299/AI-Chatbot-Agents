@@ -219,7 +219,7 @@ user_query = st.text_area(
     label_visibility="collapsed",
 )
 
-API_URL = "ai-chatbot-agents-production.up.railway.app/messages"
+API_URL = "API_URL = "/messages"
 
 # Center the button
 col_center = st.columns([1, 2, 1])
