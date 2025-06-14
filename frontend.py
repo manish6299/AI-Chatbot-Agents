@@ -219,7 +219,7 @@ user_query = st.text_area(
     label_visibility="collapsed",
 )
 
-API_URL = "API_URL = "/messages"
+API_URL = "http://127.0.0.1:5000/messages"
 
 # Center the button
 col_center = st.columns([1, 2, 1])

@@ -1,22 +1,11 @@
+# if you dont use pipenv uncomment the following:
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+# Step1: Setup Pydantic Model (Schema Validation)
 from pydantic import BaseModel
 from typing import List
-from ai_agent import get_response_from_ai_agent
 
-import threading
-import subprocess
-import os
-
-ALLOWED_MODEL_NAMES = [
-    "llama3-70b-8192",
-    "mixtral-8x7b-32768",
-    "llama-3.3-70b-versatile",
-    "gpt-4o-mini",
-]
 
 class RequestState(BaseModel):
     model_name: str
@@ -25,36 +14,45 @@ class RequestState(BaseModel):
     messages: List[str]
     allow_search: bool
 
+
+# Step2: Setup AI Agent from FrontEnd Request
+from fastapi import FastAPI
+from ai_agent import get_response_from_ai_agent
+
+ALLOWED_MODEL_NAMES = [
+    "llama3-70b-8192",
+    "mixtral-8x7b-32768",
+    "llama-3.3-70b-versatile",
+    "gpt-4o-mini",
+]
+
 app = FastAPI(title="LangGraph AI Agent")
+
 
 @app.post("/messages")
 def chat_endpoint(request: RequestState):
+    """
+    API Endpoint to interact with the Chatbot using LangGraph and search tools.
+    It dynamically selects the model specified in the request
+    """
     if request.model_name not in ALLOWED_MODEL_NAMES:
         return {"error": "Invalid model name. Kindly select a valid AI model"}
-    
+
+    llm_id = request.model_name
+    query = request.messages
+    allow_search = request.allow_search
+    system_prompt = request.system_prompt
+    provider = request.model_provider
+
+    # Create AI Agent and get response from it!
     response = get_response_from_ai_agent(
-        request.model_name,
-        request.messages,
-        request.allow_search,
-        request.system_prompt,
-        request.model_provider
+        llm_id, query, allow_search, system_prompt, provider
     )
     return response
 
-@app.get("/")
-def root():
-    # Redirect root to Streamlit app
-    return RedirectResponse(url="/streamlit")
 
-def run_streamlit():
-    # Streamlit runs on the same port, exposed via proxy
-    subprocess.run([
-        "streamlit", "run", "frontend.py",
-        "--server.port", os.getenv("PORT", "8080"),
-        "--server.address", "0.0.0.0"
-    ])
+# Step3: Run app & Explore Swagger UI Docs
+if __name__ == "__main__":
+    import uvicorn
 
-@app.on_event("startup")
-def startup_event():
-    thread = threading.Thread(target=run_streamlit, daemon=True)
-    thread.start()
+    uvicorn.run(app, host="127.0.0.1", port=5000)
