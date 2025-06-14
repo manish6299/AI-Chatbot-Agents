@@ -219,7 +219,7 @@ user_query = st.text_area(
     label_visibility="collapsed",
 )
 
-API_URL = "http://127.0.0.1:5000/messages"
+API_URL = "https://ai-chatbot-agents-goav.onrender.com/messages"
 
 # Center the button
 col_center = st.columns([1, 2, 1])
